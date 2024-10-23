@@ -1,0 +1,545 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# $Oppgave\:1$
+
+### $1A$ 
+
+Vi ønsker å måle den kausale effekten antall timer brukt på opplæring per ansatt og produktiveten per ansatt per time. Dette gjør vi ved å sette opp et RCT.
+
+Vi trekker ut et representativt og tilstrekkelig stort utvalg av arbeidstakere fra bedriften for å gjennomføre forsøket på. Denne gruppen deles inn i en kontrollgruppe og behandlingsgruppe. Kontrollgruppen får den samme opplæringen som vanlig og representerer normalnivået. Behandlingsgruppen får ekstra opplæring i forhold til hva som er normalen i bedriften. 
+
+Vi måler den uavhengige variabelen X antall timer med opplæring per ansatt og den avhengige variabelen Y samtidig som vi kontrollerer for andre varaibeler kalt kontrollvariabler. 
+
+Etter en tilstrekkelig lang og definert periode så måler vi produktiveten per ansatt per time for både kontrollgruppen og behandlingsgruppen. Sammenligner vi disse to gruppene kan vi se etter og måle den kausaleffekten av den økte opplæringen på produktivitet per ansatt per time.
+
+
+		
+
+### $1B$
+
+Et tvernsnittsdatasett inneholder både kontrollvariabler, avhengige - og uavhengige variabler for en gitt kort tidsperiode. Her er den uavhengige variabelen X; timer brukt på opplæringen av ansatt per uke. Her er den avhengige variabelen Y; produktiviteten per ansatt per time. Kontrollvariabler er andre variabler som kan påvirke Y som for eksempel læringsmiljøet, utdanningsnivået, alderen, tidligere arbeidserfaring også videre. Kontrollvariablene ønsker vi å holde konstant eller kontrollere for å kunne isolere effekten mellom de uavhengige variablene på de avhengige variablene. For å studere kausaleeffekten for vi et øyblikksbilde av sammenhengen, men den manglende tidsdimensjonen gjør det lite egnet til å bruke alene for å måle kausleeffekten
+
+### $1C$
+
+Et tidsseriedatasett viser variablene over tid. Her ser vi hvordan antall timer opplæring per ansatt per uke endrer seg over tid.  Her ser vi hvordan produksjonen per ansatt per time endrer seg over tid. Vi ser også på hvordan kontrollvariablene endrer seg over tid. Her kan vi studerer effekten X har på Y over tid. 
+
+### $1D$
+
+Paneldatasett viser informasjon over flere tidspunkter for de samme enhetene. Det er en kombinasjon av tidsseriedata og tverrsnittsdata. Her kan vi se på de individuelle ansatte, altså måle hver enkelt arbeider sin produktivitet per time over en lengre periode. Vi måler også mengden opplæring gitt til den enkelte arbeideren og kontrollvariablene assosiert med hver enkelt arbeider. Her kan vi studere effekten på de individuelle individene i utvalget og mer nøysomt måle effekten.
+
+### $1E$
+
+Det er flere utfordringer med å estimre kausaleffekter for RCTer og observassjonstudier.
+
+For RCTer så kan det ofte være ressurskrevende og vanskelig å gjennomføre i praksis. Det kan være vanskelig å tolke resultatene dersom eksperimentet ikke går helt etter planen. En kan heller ikke vite hvor generelt resultatet gjelder for populasjoner utenom den vi tok utvalget våres fra.
+
+For observasjonsstudier er det vanskelig å vite hvilken vei kausaliteten peker, om utvalget er representativt og om det finnes andre eksterne variabler som påvirker observasjonene. 
+
+Utfordringene som ble nevnt i observasjonsstudiet er skjevheter en kan få i estimatet sitt dersom en ikke kan bruke RCTer. Seleksjons-, konfounder- og målingsbias kan oppstå. Seleksjonsbias går ut på at vi ikke får et representativt utvalg. Folk som ønsker mer opplæring har gjerne en høyere produktivitet allerede. Konfounderbias går ut på at en effekt mellom to variabler også kan forklares med en eller flere bakomforliggende variabler. Det kan være at de som har mer opplæring gjerne er mindre sliten enn dem som har jobbet istedenfor å få opplæring. Målingsbias kan også oppstå dersom vi belager oss på at deltakerne skal gjøre målingene for oss. 
+
+
+
+
+# $Oppgave\:2$
+### Setup
+
+```{r}
+noise <- rnorm(500000)
+X <- rnorm(500000)
+Y <- 2*X + noise
+d <- data.frame(X, Y)
+```
+
+
+### $2A$
+```{r}
+
+cat("Tipper konstantleddet er ", 500000, " ettersom noise er 500 000\n")
+cat("Tipper helningskoeffisienten er ", 2, " ettersom X er ganget med 2") 
+```
+
+### $2B$
+```{r}
+
+modelx_y <- lm(Y ~ X, data = d)
+
+
+modely_x <- lm(X ~ Y, data = d)
+
+
+var_Y <- var(d$Y)
+var_X <- var(d$X)
+cov_Y_X <- cov(d$Y, d$X)
+cat("OLS estimator for Y ~ X:", cov_Y_X/var_X, "\n")
+cat("OLS estimator for X ~ Y:", cov_Y_X/var_Y, "\n")
+cat("var(Y):", var_Y, "\n")
+cat("var(X):", var_X, "\n")
+cat("cov(Y, X):", cov_Y_X, "\n")
+
+if (cov_Y_X / var_X == cov_Y_X / var_Y) {
+  print("Regresjonen X(Y) og Y(X) er den samme")
+} else {
+  print("Regresjonen X(Y) og Y(X) er IKKE den samme")
+}
+
+
+```
+### $2C$
+```{r}
+Yhat = predict(lm(Y ~ X, data=d))
+residuals <- d$Y - Yhat
+
+cor_Yhat_residuals <- cor(Yhat, residuals)
+cor_X_residuals <- cor(d$X, residuals)
+
+cat("cor(Yhat, residuals):", cor_Yhat_residuals, "\n")
+cat("cor(X, residuals):", cor_X_residuals, "\n")
+
+if (cor_Yhat_residuals > 0.2 || cor_Yhat_residuals < -0.2){
+  print("Yhat korrelerer med residualene")
+}else{
+  print("Yhat korrelerer ikke med residualene")
+}
+
+if (cor_X_residuals > 0.2 || cor_X_residuals < -0.2){
+  print("X korrelerer med residualene")
+}else{
+  print("X korrelerer ikke med residualene")
+}
+
+```
+### $2D$
+```{r}
+model <- lm(Y~X)
+n <- length(Y)  
+k <- length(coef(model)) - 1 
+
+RSE <- sqrt(sum(residuals^2) / (n - k - 1))
+RSE
+
+```
+
+### $2E$
+```{r}
+
+print("Ikke skrevet ferdig")
+```
+
+
+
+# $Oppgave\:3$
+### Setup
+
+```{r}
+getwd() 
+rm(list = ls()) 
+library(readxl) 
+library(tidyr) 
+library(dplyr)
+library(ggplot2) 
+library(knitr) 
+library(kableExtra)
+
+caschool <- read_excel("data/caschool.xlsx")
+```
+
+
+### $3A\:tabell\:4.1\:side\:147$
+```{r display_table, echo=TRUE, results='asis'}
+statistics <- caschool %>% summarise( str_mean = round(mean(str, na.rm
+= TRUE), 1), str_sd = round(sd(str, na.rm = TRUE), 1), str_10th =
+round(quantile(str, 0.10, na.rm = TRUE), 1), str_25th =
+round(quantile(str, 0.25, na.rm = TRUE), 1), str_40th =
+round(quantile(str, 0.40, na.rm = TRUE), 1), str_50th =
+round(quantile(str, 0.50, na.rm = TRUE), 1), str_60th =
+round(quantile(str, 0.60, na.rm = TRUE), 1), str_75th =
+round(quantile(str, 0.75, na.rm = TRUE), 1), str_90th =
+round(quantile(str, 0.90, na.rm = TRUE), 1), testscr_mean =
+round(mean(testscr, na.rm = TRUE), 1), testscr_sd = round(sd(testscr,
+na.rm = TRUE), 1), testscr_10th = round(quantile(testscr, 0.10, na.rm =
+TRUE), 1), testscr_25th = round(quantile(testscr, 0.25, na.rm = TRUE),
+1), testscr_40th = round(quantile(testscr, 0.40, na.rm = TRUE), 1),
+testscr_50th = round(quantile(testscr, 0.50, na.rm = TRUE), 1),
+testscr_60th = round(quantile(testscr, 0.60, na.rm = TRUE), 1),
+testscr_75th = round(quantile(testscr, 0.75, na.rm = TRUE), 1),
+testscr_90th = round(quantile(testscr, 0.90, na.rm = TRUE), 1) )
+
+table_output <- as.data.frame(t(statistics))
+table_output$Metric <- rownames(table_output)
+table_output$Variable <- ifelse(grepl("str",
+table_output$Metric), "STR", "Test Score")
+table_output$Metric <- gsub("str_|testscr_", "", table_output$Metric)
+table_output <- table_output[, c("Variable", "Metric", "V1")]
+table_wide <- reshape(table_output, idvar = "Metric", timevar = "Variable", direction = "wide")
+colnames(table_wide) <- gsub("V1.", "", colnames(table_wide))
+
+
+if (knitr::is_html_output()) {
+  kable(table_wide, format = "html", digits = 2) %>%
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
+    print()
+} else {
+  kable(table_wide, format = "latex", digits = 2, booktabs = TRUE) %>%
+    kable_styling(latex_options = c("striped", "hold_position")) %>%
+    print()
+}
+```
+
+
+### $3A\:plott\:4.2\:side\:148$
+```{r}
+ggplot(caschool, aes(x = str, y = testscr)) + geom_point() + labs(title
+= "Scatterplot of Student-Teacher Ratio vs Test Scores", x =
+"Student-Teacher Ratio (str)", y = "Test Scores (testscr)") +
+theme_minimal()
+
+```
+
+### $3A\:plott\:4.3\:side\:151$
+```{r}
+model <- lm(testscr ~ str, data = caschool)
+
+ggplot(caschool, aes(x = str, y = testscr)) + geom_point() +
+geom_smooth(method = "lm", se = FALSE, color = "blue") + labs(title =
+"Scatterplot of Student-Teacher Ratio vs Test Scores with Linear
+Regression", x = "Student-Teacher Ratio (str)", y = "Test Scores
+(testscr)") + theme_minimal()
+
+```
+
+### $3A\:plott\:4.9\:side\:150$
+```{r}
+coefficients <- coef(model) 
+intercept <- coefficients[1] 
+slope <-coefficients[2]
+
+cat("Intercept:", intercept, "\n") 
+cat("Slope:", slope, "\n")
+cat("TestScore = ", intercept, " + ", slope, " * STR\n")
+
+```
+
+### $3A\:95\%\:konfidensintervall$
+```{r}
+conf_interval <- confint(model, "str", level = 0.95)
+
+print(conf_interval)
+
+cat("The 95% confidence interval for the effect of 'str' on 'testscr' is
+[", conf_interval[1], ", ", conf_interval[2], "].\n") 
+cat("If the interval does not include 0, it suggests that 'str' has a statistically significant effect on 'testscr'.")
+
+```
+### $3B\:Ligningene\:i\:4.3\:side 153-156$
+```{r}
+
+caschool$Yhat <- predict(model)
+
+caschool$residuals <- caschool$testscr - caschool$Yhat
+
+R2 <- summary(model)$r.squared
+
+TSS <- sum((caschool$testscr - mean(caschool$testscr))^2)
+
+ESS <- sum((caschool$Yhat - mean(caschool$testscr))^2)
+
+SSR <- sum(caschool$residuals^2)
+
+SER <- sqrt(SSR / (nrow(caschool) - 2))
+
+cat("R-squared (R²):", R2, "\n") 
+cat("Total Sum of Squares (TSS):", TSS,"\n") 
+cat("Explained Sum of Squares (ESS):", ESS, "\n") 
+cat("Sum of Squared Residuals (SSR):", SSR, "\n") 
+cat("Standard Error of Regression (SER):", SER, "\n")
+
+anova_model <- aov(testscr ~ str, data = caschool)
+
+summary(anova_model)
+
+```
+### $3C$
+```{r}
+library(lmtest) 
+bptest(model)
+```
+
+
+
+
+# $Oppgave\:4$
+### Setup
+
+```{r}
+library(readxl)
+library(dplyr)
+library(rmarkdown)
+library(ggplot2)
+EarnHeight <- read_excel("data/Earnings_and_Height_NO.xlsx")
+```
+
+
+### $4A$
+```{r}
+height_median <- median(EarnHeight$heightcm)
+height_average <- mean(EarnHeight$heightcm)
+cat("Median høyde: ", height_median,"\n")
+cat("Gjennomsnittshøyde: ", height_average, "\n")
+
+```
+
+
+### $4B_{i}$
+```{r}
+average_income_equal_less_170 <- EarnHeight %>%
+  filter(heightcm <= 170) %>%
+  summarise(average_income = mean(earningsnok, na.rm = TRUE)) %>%
+  pull(average_income)
+
+cat("Average income for individuals equal or less than 170 cm: ", average_income_equal_less_170, "\n")
+
+```
+
+
+### $4B_{ii}$
+```{r}
+average_income_taller_170 <- EarnHeight %>%
+  filter(heightcm > 170) %>%
+  summarise(average_income = mean(earningsnok, na.rm = TRUE)) %>%
+  pull(average_income)
+
+cat("Average income for individuals taller than 170 cm: ", average_income_taller_170, "\n")
+
+```
+
+### $4B_{iii}$
+```{r}
+tall_low_diff_income <- average_income_taller_170 - average_income_equal_less_170
+cat("Difference between the income of tall people and low people is", tall_low_diff_income, "\n")
+
+```
+
+
+### $4B_{iv}$
+```{r}
+t_test_result <- t.test(earningsnok ~ heightcm > 170, data = EarnHeight)
+conf_interval <- t_test_result$conf.int
+cat("95% confidence interval for the difference in average income: [", conf_interval[1], ", ", conf_interval[2], "]\n")
+
+```
+
+### $4C$
+```{r}
+ggplot(EarnHeight, aes(x = earningsnok, y = heightcm)) +
+  geom_point() +
+  labs(title = "Scatter Plot of Earnings vs Height",
+       x = "Earnings (NOK)",
+       y = "Height (cm)") +
+  theme_minimal()
+  
+```
+
+  
+  
+### $4D_{i}$
+```{r}
+model <- lm(earningsnok ~ heightcm, data = EarnHeight)
+model_summary <- summary(model)
+
+print(model_summary)
+
+estimated_slope <- model_summary$coefficients["heightcm", "Estimate"]
+
+p_value <- model_summary$coefficients["heightcm", "Pr(>|t|)"]
+
+ser <- model_summary$sigma
+
+r_squared <- model_summary$r.squared
+
+cat("Estimated slope (helning): ", estimated_slope, "\n")
+cat("P-value for the slope: ", p_value, "\n")
+cat("Standard Error of the Residuals (SER): ", ser, "\n")
+cat("R-squared value: ", r_squared, "\n")
+
+```
+
+### $4D_{ii}$
+```{r}
+new_heights <- data.frame(heightcm = c(165, 170, 180))
+predicted_earnings <- predict(model, newdata = new_heights)
+cat("Predicted earnings for a worker who is 165 cm tall: ", predicted_earnings[1], "\n")
+cat("Predicted earnings for a worker who is 170 cm tall: ", predicted_earnings[2], "\n")
+cat("Predicted earnings for a worker who is 180 cm tall: ", predicted_earnings[3], "\n")
+
+
+```
+
+### $4F_{i}$
+```{r}
+female_workers <- EarnHeight %>%
+  filter(sex == 0)
+female_model <- lm(earningsnok ~ heightcm, data = female_workers)
+female_model_summary <- summary(female_model)
+print(female_model_summary)
+
+
+```
+### $4F_{ii}$
+```{r}
+mean_height_female <- mean(female_workers$heightcm, na.rm = TRUE)
+height_5cm_above_mean <- mean_height_female + 5
+predicted_income_5cm_above_mean <- predict(female_model, newdata = data.frame(heightcm = height_5cm_above_mean))
+mean_income_female <- mean(female_workers$earningsnok, na.rm = TRUE)
+income_difference <- predicted_income_5cm_above_mean - mean_income_female
+
+cat("Gjennomsnittshøyde for kvinner: ", mean_height_female, " cm\n")
+cat("Predikert inntekt for en kvinne som er 5 cm høyere enn gjennomsnittet: ", predicted_income_5cm_above_mean, " NOK\n")
+cat("Gjennomsnittsinntekt for kvinner: ", mean_income_female, " NOK\n")
+cat("Forskjell i inntekt: ", income_difference, " NOK\n")
+
+```
+
+
+### $4G$
+```{r}
+male_workers <- EarnHeight %>%
+  filter(sex == 1)
+male_model <- lm(earningsnok ~ heightcm, data = male_workers)
+male_model_summary <- summary(male_model)
+print(male_model_summary)
+
+mean_height_male <- mean(male_workers$heightcm, na.rm = TRUE)
+
+height_5cm_above_mean <- mean_height_male + 5
+predicted_income_5cm_above_mean <- predict(male_model, newdata = data.frame(heightcm = height_5cm_above_mean))
+
+mean_income_male <- mean(male_workers$earningsnok, na.rm = TRUE)
+
+income_difference <- predicted_income_5cm_above_mean - mean_income_male
+
+```
+
+### $4H$
+```{r}
+interaction_model <- lm(earningsnok ~ heightcm * sex, data = EarnHeight)
+
+interaction_model_summary <- summary(interaction_model)
+
+print(interaction_model_summary)
+
+interaction_term <- interaction_model_summary$coefficients["heightcm:sex", ]
+cat("Estimated coefficient for the interaction term (heightcm:sex): ", interaction_term["Estimate"], "\n")
+cat("P-value for the interaction term: ", interaction_term["Pr(>|t|)"], "\n")
+
+
+if (interaction_term["Pr(>|t|)"] < 0.05) {
+  cat("Resultatene er signifikante. Effekten av høyde på inntekt er forskjellig for menn og kvinner.\n")
+} else {
+  cat("Resultatene er ikke signifikante. Effekten av høyde på inntekt er ikke forskjellig for menn og kvinner.\n")
+}
+```
+### $4I$
+
+Forutsetningen $( E(u_i | X_i) = 0 )$ er en viktig antakelse i lineær regresjonsanalyse. La oss forklare hva denne forutsetningen innebærer og diskutere om høyde er ukorrelert med andre faktorer som forklarer inntekt.
+
+Forklaring av forutsetningen $( E(u_i | X_i) = 0 )$
+$( u_i )$: Dette er feilleddet (residualen) for observasjon ( i ). Det representerer forskjellen mellom den observerte verdien av den avhengige variabelen (inntekt) og den verdien som er predikert av modellen.
+$( X_i )$: Dette er verdien av den uavhengige variabelen (høyde) for observasjon ( i ).
+Forutsetningen $( E(u_i | X_i) = 0 )$ betyr at den forventede verdien av feilleddet, gitt verdien av den uavhengige variabelen, er null. Med andre ord, det er ingen systematisk sammenheng mellom feilleddene og den uavhengige variabelen. Dette innebærer at alle faktorer som påvirker den avhengige variabelen, men som ikke er inkludert i modellen, er ukorrelert med den uavhengige variabelen.
+
+Betydning av forutsetningen
+Hvis $( E(u_i | X_i) = 0 )$holder, betyr det at modellen er korrekt spesifisert, og at de uavhengige variablene ikke er korrelert med feilleddene. Dette er en nødvendig betingelse for at koeffisientestimatene skal være uforvrengte (unbiased) og konsistente.
+Hvis forutsetningen ikke holder, kan koeffisientestimatene være forvrengte, noe som betyr at de systematisk avviker fra de sanne verdiene.
+Er høyde ukorrelert med andre faktorer som forklarer inntekt?
+Det er usannsynlig at høyde er helt ukorrelert med andre faktorer som forklarer inntekt. Noen mulige faktorer som kan være korrelert med både høyde og inntekt inkluderer:
+
+Utdanning: Høyere utdanning kan være korrelert med både høyde og inntekt. For eksempel kan personer med høyere utdanning ha høyere inntekt, og det kan være en korrelasjon mellom høyde og utdanningsnivå.
+Sosioøkonomisk bakgrunn: Personer fra høyere sosioøkonomiske bakgrunner kan ha bedre ernæring og helse, noe som kan påvirke både høyde og inntekt.
+Helse: Helse kan påvirke både høyde og inntekt. Personer med bedre helse kan være høyere og også ha høyere inntekt på grunn av høyere produktivitet og færre sykefravær.
+Konklusjon
+Forutsetningen $( E(u_i | X_i) = 0 )$ er viktig for å sikre at koeffisientestimatene er uforvrengte. I praksis er det imidlertid ofte vanskelig å oppfylle denne forutsetningen fullt ut, da det kan være mange faktorer som påvirker både høyde og inntekt. Det er derfor viktig å være oppmerksom på potensielle kilder til forvrengning og vurdere å inkludere flere relevante variabler i modellen for å redusere forvrengning.
+
+
+# $Oppgave 5$
+
+### $5A$
+
+MSE står for “mean squared error” og måler en estimators nøyaktighet.  
+Formlen for MSE er: 
+$MSE\left(Q\right)=Var\left(Q\right)+\left[Bias\left(Q\right)\right]^2$
+
+Her ser vi at den er komponenrt av både variansen og av biaset gangen emd seg selv. Variansen er variasjonen vi får fra estimatoren Q. Biaset er differansen mellom forventningsverdien fra Q og den sanne veriden $\mu$.
+
+$Bias\left(Q\right)=E\left(Q\right)-\mu$
+
+Enkelt forkalrt så vil MSE, gjennomsnittlige kvadratiske feilen, være forklart av variasen av estimatoren eller av feilprediksjonen av estimatoren. 
+
+
+### $5B$
+
+Hvis en estimator er forventningsrett vil den ha samme forventningsverdi som den sanne forventningsverdien:
+
+$E\left(Q\right)=\mu$
+
+Kan vi vise at en estimator har en annen forventningsverdi kaller vi den forventningsskjev, altså $E\left(Q\right)\neq\mu$.
+
+Estimatoren $Q_1$:
+$E(Q_1)\ )\ E(X_1\ -10)\ =\ E(X_1)\ -\ 10\ =\ \mu\ -\ 10\neq\mu$
+
+Estimatoren $Q_2$:
+$E\left(Q_2\right)=E\left(X_2+\frac{5}{n}\right)=E\left(X_2\right)+\frac{5}{n}=\mu+\frac{5}{n}\neq\mu$
+
+Estimatoren $Q_3$:
+$E\left(Q_3\right)=E\left(\frac{n-1}{n-2}\ast X_3\right)=\frac{n-1}{n-2}E\left(X_3\right)=\frac{n-1}{n-2}\mu\neq\mu$
+
+
+### $5C$
+
+$Bias\left(Q_1\right)=\mu-10-\mu=-10$
+
+$Bias\left(Q_2\right)=\mu+\frac{5}{n}-\mu=\frac{5}{n}$
+
+$Bias\left(Q_3\right)=\frac{n-1}{n-2}\mu-\mu=\mu\ast\left(\frac{n-1}{n-2}-1\right)=\frac{\mu}{n-2}$
+
+
+
+
+### $5D$
+$Var\left(Q_1\right)=Var\left(X_1-10\right)=Var\left(X_1\right)=\sigma^2$
+
+
+$Var\left(Q_2\right)=Var\left(X_2-\frac{5}{n}\right)=Var\left(2\right)=\sigma^2$
+
+
+$Var\left(Q_3\right)=Var\left(\left(\frac{n-1}{n-2}\right)^\ast X_3\right)=\left(\frac{n-1}{n-2}\right)^2\ast Var\left(X_3\right)=\left(\frac{n-1}{n-2}\right)^2\sigma^2,\ \left(\frac{n-1}{n-2}\right)^2<\ 1$
+
+
+Estimatorene $Q_1$ og $Q_2$ har størst varians.
+
+### $5E$
+
+Estimatoren $Q_1$:
+
+$MSE\left(Q_1\right)=Var\left(Q_1\right)+\left[Bias\left(Q_1\right)\right]^2=20+\left(-10\right)^2=20+100=120$
+
+
+Estimatoren $Q_2$:
+
+$MSE\left(Q_2\right)=Var\left(Q_2\right)+\left[Bias\left(Q_2\right)\right]^2=20+{(\frac{5}{n})}^2=20+0.25=20.25$
+
+Estimatoren $Q_3$:
+
+$MSE\left(Q_3\right)=Var\left(Q_3\right)+\left[Bias\left(Q_3\right)\right]^2=\left(\frac{9}{8}\right)^2\ast\ 20\ +\ \left(\frac{100}{8}\right)^2\ \ =181.5625$ 
+
+
+
+Q_2 er den beste estimatoren med lavest MSE og lavest varians.
+
+
+
+
+
