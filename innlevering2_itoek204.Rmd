@@ -130,7 +130,8 @@ Ved flere typer forskjellige maskiner og typer kapital ville vi utvidet kapital 
 # Oppgave 3
 ## a)
 
-
+Vi har $\hat{\text{Lønn}}=10.73+1.78*\text{Mann}$ hvor $$\text{Mann} =\begin{cases} 1, & \text{hvis mann} \\
+0, & \text{ellers}\end{cases}$$
 
 
 
