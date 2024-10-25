@@ -4,7 +4,7 @@ output:
   html_document: default
 ---
 
-```{r setup}
+```{r setup,echo=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -49,7 +49,7 @@ $\frac{\partial \text{OLS}}{\partial \beta_1}=-2\sum_{i=1}^n (y_i-\beta_0-\beta_
 hvilket vi kan skrive som:
 
 \(1)$\hat{\beta_0} = \bar{Y} - \hat{\beta_1}\bar{X}\\$
-(2)$\hat{\beta_1} =\frac{\sum_{i=1}^n (X_i-\bar{X})(Y_i-\bar{Y}) }{\sum_{i=1}^n X_i-\bar{X}}  \\$
+(2)$\hat{\beta_1} =\frac{\sum_{i=1}^n (X_i-\bar{X})(Y_i-\bar{Y}) }{\sum_{i=1}^n (X_i-\bar{X})^2}  \\$
 
 Her er (1) den første momentbetingelsen og (2) den andre momentbetingelsen bare løst for $\beta_0$ og $\beta_1$ respektivt.
 
@@ -133,10 +133,223 @@ Ved flere typer forskjellige maskiner og typer kapital ville vi utvidet kapital 
 Vi har $\hat{\text{Lønn}}=10.73+1.78*\text{Mann}$ hvor $$\text{Mann} =\begin{cases} 1, & \text{hvis mann} \\
 0, & \text{ellers}\end{cases}$$
 
+$Lønn_{kvinner} = 10.73+1.78*0=10.73, \text{enheten er 30kr/time så vi har } 10.73*30\text{kr/time = 322kr/time}$
+
+$Lønn_{menn} = 10.73+1.78*1=12.51, \text{enheten er 30kr/time så vi har } 12.51*30\text{kr/time = 375kr/time}$
+
+Estimert lønnsforskjell er $Lønn_{menn} - Lønn_{kvinner} = 375-321=54$, det er estimert 54 kroner i timen lønnsforksjell.
+
+Estimert prosentvis forskjell $\frac{54}{321}\approx17\%$, det er estimert 17% forksjell i timelønn.
+
+## b)
+
+```{r,echo=TRUE}
+# Estimater fra regresjonen
+beta_1 <- 1.78  # Koeffisienten for variabelen "Mann"
+SE_beta_1 <- 0.29  # Standardfeilen for koeffisienten
+
+# Beregn t-verdien
+t_value <- beta_1 / SE_beta_1
+
+# Finn antall observasjoner
+n_menn <- 200  # Antall mannlige observasjoner
+n_kvinner <- 240  # Antall kvinnelige observasjoner
+df <- (n_menn + n_kvinner - 2)  # Frihetsgrader
+
+# Beregn p-verdi
+p_value <- 2 * pt(-abs(t_value), df=df)
+
+# Vis resultatene
+cat("T-verdi:", t_value, "\n")
+cat("Frihetsgrader:", df, "\n")
+cat("P-verdi:", p_value, "\n")
+
+# Sjekk om lønnsforskjellen er signifikant på et 5% nivå
+if(p_value < 0.05) {
+  cat("Lønnsforskjellen er signifikant forskjellig fra 0.\n")
+} else {
+  cat("Lønnsforskjellen er ikke signifikant forskjellig fra 0.\n")
+}
+```
 
 
+## c)
+```{r, echo=TRUE}
+beta_1 <- 1.78  # Koeffisienten for variabelen "Mann"
+SE_beta_1 <- 0.29  # Standardfeilen for koeffisienten
 
-```{r}
+# Beregn t-verdien
+t_value <- beta_1 / SE_beta_1
+
+# Finn antall observasjoner
+n_menn <- 200  # Antall mannlige observasjoner
+n_kvinner <- 240  # Antall kvinnelige observasjoner
+df <- (n_menn + n_kvinner - 2)  # Frihetsgrader
+
+# Beregn p-verdi
+alpha <- 0.05
+t_critical <- qt(1 - alpha/2, df)
+
+# Konfidensintervall beregning
+lower_bound <- beta_1 - t_critical * SE_beta_1
+upper_bound <- beta_1 + t_critical * SE_beta_1
+
+# Vis konfidensintervallet
+cat("95% konfidensintervall for lønnsforskjellen: (", lower_bound, ",", upper_bound, ")\n")
 
 ```
 
+## d)
+
+Dersom tilstedeværelse av kvinne er 1 for den binære variabelen så må vi regne ut vår nye $\beta_0$ og $\beta_1$.
+
+Konstant leddet $\beta_0$ blir gjennomsnittslønn for menn:
+$\\Lønn_{menn} = 10.73+1.78*1=12.51$
+
+Koeffisienten $\beta_1$ blir effekten av tilstedværelse av kvinne, det blir den negative effekten av det vi så tidligere:
+$\\Lønn_{kvinner} = 12.51-1.78*1=10.73$
+
+Vi har då: $\hat{\text{Lønn}}=12.51-1.78*\text{Kvinne}$, hvor $$\text{kvinne} =\begin{cases} 1, & \text{hvis kvinne} \\
+0, & \text{ellers}\end{cases}$$
+
+
+# Oppgave 4
+
+Vi har fra oppgave teksten, korrekte spesifikasjonen $(1):Y=\beta_0+\beta_1X+\beta_2A+u$, og den spesifikasjonen vi valgte $(2): Y=\beta_0+\beta_1X+u$
+
+Ettersom vi ikke har spesifiert leddet $\beta_2A$ vil modellen vil dette være endel av feilleddet i våres modell (2) $Y=\beta_0+\beta_1X+(u+\beta_2A)$
+
+Fra (1) kan vi skrive $A = \frac{Y - \beta_0 - \beta_1 X - u}{\beta_2}$
+
+fra gjennomgangen våres av OLS så blir $\hat{\beta_1} = \frac{\sum_{i=1}^n (X_i-\bar{X})(Y_i-\bar{Y})}{\sum_{i=1}^n (X_i-\bar{X})^2} = \frac{S_{xy}}{S_{xx}}$, der
+$\\S_{xy} = \frac{1}{n-1}\sum_{i=1}^n (X_i-\bar{X})(Y_i-\bar{Y})$ er utvalgskovarians
+$\\S_{xx} = \frac{1}{n-1}\sum_{i=1}^n (X_i-\bar{X})^2$ er utvalgsvarians
+
+Når utvalget $n$ går mot uendelig vil vi ha de sanne verdiene for variansen og kovariansen for populasjonen slik at:
+$\\ \lim_p \hat{\beta_1} = \frac{\text{Cov}(X,Y)}{\text{Var}(X)} = \frac{\text{Cov}(X, \beta_0 + \beta_1X + \beta_2A + u)}{\text{Var}(X)}= \frac{\beta_1\text{Var}(X) + \beta_2\text{Cov}(X,A)}{\text{Var}(X)}= \beta_1 + \beta_2\frac{\text{Cov}(X,A)}{\text{Var}(X)}$, hvor 
+
+$\\\frac{\text{Cov}(X,A)}{\text{Var}(X)} = \frac{\text{Corr}(X,A) \cdot \text{std}(X)\text{std}(A)}{\text{std}(X)\text{std}(X)}$, slik at
+
+$\\\lim_p \hat{\beta_1} = \beta_1 + \beta_2 \cdot \text{Corr}(X,A) \cdot \frac{\text{std}(A)}{\text{std}(X)}$
+
+En utelatt forklaringsvariabel er en variabel som påvirker den avhengige variabel og/eller uavhengig variabel som ikke er med i regressjonsmodellen. Siden denne variabel ikke er med i modellen vil estimatene av koeffisenten blir skjev. I eksempel vi har brukt blir $\beta_1$ skjev fordi vi har en utelatt variabel A. Dette betyr at vi for at upresist mål av effekten utdanning $\beta_1X$ har på lønn $Y$ siden vi mangler $\beta_2A$.
+
+Vi ser at fra: $\hat{\beta_1} = \beta_1 + \beta_2 \cdot \text{Corr}(X,A) \cdot \frac{\text{std}(A)}{\text{std}(X)}$ at hvorvidt vi får negativ skjevhet eller positiv skjevhet avhenger av korrelasjonen mellom utdanning og evner og evner sin påvirkning på lønn. Vi kan se dette fra ligningen ved å se at fortegnet for leddet $\beta_2 \cdot \text{Corr}(X,A) \cdot \frac{\text{std}(A)}{\text{std}(X)}$ avhenger produktet $\beta_2 \cdot \text{Corr}(X,A)$ hvor:
+$$\text{Fortegn på skjevheten} =\begin{cases} 
+\text{Positiv} & \text{hvis } \beta_2 > 0 \text{ og } \text{Corr}(X,A) > 0, \\
+\text{Positiv} & \text{hvis } \beta_2 < 0 \text{ og } \text{Corr}(X,A) < 0, \\
+\text{Negativ} & \text{hvis } \beta_2 > 0 \text{ og } \text{Corr}(X,A) < 0, \\
+\text{Negativ} & \text{hvis } \beta_2 < 0 \text{ og } \text{Corr}(X,A) > 0.
+\end{cases}$$
+
+
+
+# Oppgave 5
+
+
+```{r, echo=TRUE}
+# Skalar
+s <- 5
+
+# Rekkevektor
+r_vec <- c(1, 2, 3)
+
+# Kolonnevektor
+c_vec <- matrix(c(1, 2, 3), nrow = 3, ncol = 1)
+
+# Matrise
+A <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2)
+
+# Printing
+print(s)
+print(r_vec)
+print(c_vec)
+print(A)
+
+
+# Transpose
+t_r_vec <- t(matrix(r_vec, nrow = 1))
+t_A <- t(A)
+
+# Printing
+print(t_r_vec)
+print(t_A)
+
+# Dimensjon
+dim_A <- dim(A)
+print(dim_A)
+
+# Matrise A
+A <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2)
+
+# Matrise B
+B <- matrix(c(6, 5, 4, 3, 2, 1), nrow = 3, ncol = 2)
+
+# Addering
+C <- A + B
+
+# Printing
+print(C)
+
+
+# Skalar
+s <- 3
+
+# Multiplikasjon
+D <- A * s
+
+# Printing
+print(D)
+
+print("Multiplikasjon av en (5x2) matrise med en (2x4) matrise gir en matrise med dimensjonen 5×4.")
+
+# Matrise A (3x2)
+A <- matrix(c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2)
+
+# Matrise B (2x2)
+B <- matrix(c(7, 8, 9, 10), nrow = 2, ncol = 2)
+
+# Multiplikasjon
+E <- A %*% B
+
+# Printing
+print(E)
+
+# Matrise A (2x2)
+A <- matrix(c(4, 7, 2, 6), nrow = 2, ncol = 2)
+
+# Invers
+A_inv <- solve(A)
+
+# Printing
+print(A_inv)
+
+# Simuler data
+n <- 100
+k <- 3
+X <- matrix(rnorm(n * k), n, k)
+beta_true <- c(1, 0.5, -0.5)
+epsilon <- rnorm(n)
+
+Y <- X %*% beta_true + epsilon
+
+# OLS-estimator
+beta_hat <- solve(t(X) %*% X) %*% t(X) %*% Y
+
+# Printing result
+print(beta_hat)
+
+
+# Lag en 10x3 matrise
+set.seed(123)
+A <- matrix(rnorm(30), nrow = 10, ncol = 3)
+
+# Print matrisen
+print(A)
+
+# Beregn varians-kovarians-matrisen
+cov_matrix <- cov(A)
+
+# Print varians-kovarians-matrisen
+print(cov_matrix)
+```
